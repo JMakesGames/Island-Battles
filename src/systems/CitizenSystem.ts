@@ -283,7 +283,23 @@ function tryReacquireRole(state: GameState, civ: Civ, c: Citizen, claimed: Set<n
  * previously-undiscovered site was just reached this tick. */
 const LEADER_SPEED_MULT = 1.5; // the player-controlled leader moves faster than auto-walking citizens
 
-function updateLeaderManual(state: GameState, civ: Civ, c: Citizen, bus: EventBus): void {
+/** The manually-driven leader's pure movement step — held-key steering or
+ * click-to-walk — with no site-discovery side effect, so it's safe to also
+ * run purely LOCALLY on a multiplayer client for input prediction (see
+ * Game.ts's predictLeaderStep): the server is the only place that may ever
+ * discover a site, but movement math is just math, and running the exact
+ * same formula client-side the instant a key is pressed — instead of
+ * waiting for the round trip to the server and the next throttled snapshot
+ * — is what actually fixes "my inputs felt delayed" in real multiplayer
+ * (bug report). Returns the target to keep tracking (null once reached, so
+ * callers know to stop). */
+export function moveLeaderManual(
+  state: GameState,
+  civ: Civ,
+  c: Citizen,
+  moveDir: Vec2 | null,
+  target: Vec2 | null,
+): Vec2 | null {
   // Cavalry (spec: "the mount cosmetics... purely visual, no mechanical
   // benefit") — a real speed edge on top of the base leader boost, not just
   // a different sprite riding along.
@@ -291,18 +307,25 @@ function updateLeaderManual(state: GameState, civ: Civ, c: Citizen, bus: EventBu
   // Companion speed buffs (spec: warhorse always faster, dragon +50% when
   // badly hurt) stack multiplicatively on top of the mount cosmetic.
   const speedMult = LEADER_SPEED_MULT * mountMult * companionSpeedMult(civ);
-  if (civ.leaderMoveDir) {
+  if (moveDir) {
     // Held-key steering (spec: smooth walking): a constant unit vector
     // applied every tick, not a lookahead waypoint the client has to keep
     // re-aiming. Both axes are normalized together up front (see
     // Simulation's setLeaderMove handler), so every one of the 8 directions
     // — including diagonals — covers exactly the same distance per tick.
     const spd = walkSpeedAt(state, c.pos) * speedMult;
-    moveWithCollision(state, c.pos, civ.leaderMoveDir.x * spd, civ.leaderMoveDir.y * spd);
-    c.facing = directionFromDelta(civ.leaderMoveDir.x, civ.leaderMoveDir.y);
-  } else if (civ.leaderTarget) {
-    if (moveToward(state, c, civ.leaderTarget, speedMult)) civ.leaderTarget = null;
+    moveWithCollision(state, c.pos, moveDir.x * spd, moveDir.y * spd);
+    c.facing = directionFromDelta(moveDir.x, moveDir.y);
+    return target;
   }
+  if (target) {
+    return moveToward(state, c, target, speedMult) ? null : target;
+  }
+  return target;
+}
+
+function updateLeaderManual(state: GameState, civ: Civ, c: Citizen, bus: EventBus): void {
+  civ.leaderTarget = moveLeaderManual(state, civ, c, civ.leaderMoveDir, civ.leaderTarget);
   const t = state.world.tileAt(Math.round(c.pos.x), Math.round(c.pos.y));
   if (t && t.site >= 0) {
     const site = state.world.sites[t.site];

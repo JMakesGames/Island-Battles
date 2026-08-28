@@ -20,6 +20,7 @@ import type { Vec2, DiploAction, Proposal } from "../core/types.ts";
 import type { GameState } from "./GameState.ts";
 import type { GameEvent } from "./config.ts";
 import { getEvent } from "../systems/EventSystem.ts";
+import { moveLeaderManual } from "../systems/CitizenSystem.ts";
 import { hasSeenTutorial, markTutorialSeen } from "../net/profileStore.client.ts";
 import { setVolume } from "../ui/AudioSystem.ts";
 import { loadKeyBinds, loadVolume, type KeyBinds } from "../net/settings.client.ts";
@@ -106,11 +107,31 @@ export class Game {
   /** Which save slot this run persists to (undefined in multiplayer). */
   private saveSlot?: number;
   private paused = false;
+  /** Client-side leader-movement prediction (bug report: "I was delayed and
+   * so were my inputs" — real multiplayer). NetworkTransport only ever
+   * renders the last snapshot the server broadcast (throttled to
+   * SNAPSHOT_HZ, see server/index.ts), so with no prediction every
+   * keypress/click waits a full round trip plus up to that broadcast
+   * interval before the leader visibly moves at all — floaty and laggy
+   * even on a fast connection. These two track what the LOCAL player is
+   * currently doing (set the instant input happens, independent of
+   * whatever civ.leaderMoveDir/leaderTarget the last snapshot echoed back),
+   * and predictTimer replays the exact same movement math the server runs
+   * (CitizenSystem.moveLeaderManual) at the same tick rate, purely for
+   * this client's own rendering — the server remains fully authoritative;
+   * the next snapshot simply overwrites this prediction with truth. Unused
+   * (never started) in solo play, where LocalTransport already ticks the
+   * real simulation every frame with zero latency. */
+  private predictedMoveDir: Vec2 | null = null;
+  private predictedTarget: Vec2 | null = null;
+  private predictTimer: ReturnType<typeof setInterval> | null = null;
+  private isMultiplayer = false;
 
   constructor(mount: HTMLElement, options: GameOptions = {}, private onGameOver?: () => void) {
     const seed = options.seed ?? (Date.now() & 0xffff);
     const serverUrl = options.serverUrl;
     this.saveSlot = options.saveSlot;
+    this.isMultiplayer = !!serverUrl;
     setVolume(loadVolume());
     this.transport = serverUrl
       ? new NetworkTransport(serverUrl, options.leaderName)
@@ -192,6 +213,27 @@ export class Game {
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+
+    // Leader-movement prediction (see the field comments above) — same
+    // fixed tick rate the server itself runs at, independent of render
+    // framerate so predicted speed matches the server's exactly.
+    if (this.isMultiplayer) {
+      this.predictTimer = setInterval(() => this.predictLeaderStep(), 1000 / 60);
+    }
+  }
+
+  /** Advances the LOCAL player's own leader using the exact same movement
+   * formula the server runs (CitizenSystem.moveLeaderManual), purely for
+   * this client's rendering — see the predictedMoveDir/predictedTarget
+   * field comments. No-op the moment the server's next snapshot arrives
+   * and replaces `this.state` wholesale; this only ever predicts forward
+   * from whatever position the last real snapshot said was true. */
+  private predictLeaderStep(): void {
+    if (!this.predictedMoveDir && !this.predictedTarget) return;
+    const civ = this.state.civs[this.myCivId];
+    const leader = civ?.leader;
+    if (!civ?.started || !leader) return;
+    this.predictedTarget = moveLeaderManual(this.state, civ, leader, this.predictedMoveDir, this.predictedTarget);
   }
 
   // Window-level listeners (see bindInput) outlive the canvas they're
@@ -255,6 +297,7 @@ export class Game {
 
   destroy(): void {
     this.renderRunning = false;
+    if (this.predictTimer !== null) clearInterval(this.predictTimer);
     this.transport.stop();
     // Undo bindInput's window-level listeners — left dangling, the keydown
     // handler's preventDefault() on "e"/" "/"t" would silently eat those
@@ -449,10 +492,18 @@ export class Game {
       }
     }
     // Camera follow runs every frame, for both click-move and held-key
-    // steering, as long as the leader is actively walking somewhere.
+    // steering, as long as the leader is actively walking somewhere. Reads
+    // the LOCAL predicted input state in multiplayer (predictedMoveDir/
+    // predictedTarget), not the snapshot's civ.leaderMoveDir/leaderTarget —
+    // those only reflect what the server had processed as of the last
+    // throttled broadcast, which would make the camera start following a
+    // beat after the (already-predicted) leader sprite starts moving.
     const leader = state.civs[this.myCivId]?.leader;
     const civ = state.civs[this.myCivId];
-    if (leader && (civ?.leaderTarget || civ?.leaderMoveDir)) {
+    const walking = this.isMultiplayer
+      ? !!(this.predictedTarget || this.predictedMoveDir)
+      : !!(civ?.leaderTarget || civ?.leaderMoveDir);
+    if (leader && walking) {
       this.cam.follow(leader.pos.x, leader.pos.y, 0.15);
     }
     // Game over: the leader can die to rival combat (CombatSystem's
@@ -558,6 +609,11 @@ export class Game {
     if (this.heldKeys.has(b.left) || this.heldKeys.has("arrowleft")) dx -= 1;
     if (this.heldKeys.has(b.right) || this.heldKeys.has("arrowright")) dx += 1;
     const dir = dx === 0 && dy === 0 ? null : { x: dx, y: dy };
+    // Predict immediately, independent of whether the command below has
+    // even reached the server yet — this is what actually removes the felt
+    // input delay (see predictedMoveDir's field comment).
+    this.predictedMoveDir = dir;
+    if (dir) this.predictedTarget = null; // held-key steering overrides click-to-walk, same as the server
     const key = dir ? `${dir.x},${dir.y}` : "null";
     if (key === this.lastSentDir) return;
     this.lastSentDir = key;
@@ -629,7 +685,10 @@ export class Game {
     }
 
     // Nothing selected, no citizen there: send the leader — the player's
-    // physical character (spec §5) — walking to that spot.
+    // physical character (spec §5) — walking to that spot. Predict the walk
+    // locally too (see predictedTarget's field comment).
+    this.predictedTarget = tile;
+    this.predictedMoveDir = null;
     this.send({ type: "setLeaderTarget", civ: this.myCivId, target: tile });
   }
 }
