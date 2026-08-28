@@ -1,0 +1,14 @@
+{
+  "$schema": "Achievements (spec: 'achievements tied to the existing Battle Pass XP economy'). Each is checked once per day against a civ's own tracked stats (never re-earned); on first crossing the threshold it grants xp Battle Pass XP. check.type reads one of: founded, peakPopulation, warsDeclared, alliancesFormed, researched, daysSurvived, buildingsComplete, scoutedRivals — see systems/AchievementSystem.ts.",
+  "achievements": [
+    { "id": "first_camp",     "name": "First Steps",         "desc": "Found your first camp.",              "xp": 20, "check": { "type": "founded",          "value": 1 } },
+    { "id": "pop_10",         "name": "Growing Strong",      "desc": "Reach 10 citizens.",                   "xp": 30, "check": { "type": "peakPopulation",   "value": 10 } },
+    { "id": "pop_25",         "name": "Thriving Metropolis", "desc": "Reach 25 citizens.",                   "xp": 60, "check": { "type": "peakPopulation",   "value": 25 } },
+    { "id": "first_war",      "name": "War Monger",          "desc": "Declare your first war.",              "xp": 25, "check": { "type": "warsDeclared",     "value": 1 } },
+    { "id": "first_alliance", "name": "Diplomat",            "desc": "Form your first alliance.",            "xp": 25, "check": { "type": "alliancesFormed",  "value": 1 } },
+    { "id": "scholar_5",      "name": "Scholar",             "desc": "Research 5 technologies.",             "xp": 40, "check": { "type": "researched",       "value": 5 } },
+    { "id": "survive_30",     "name": "Survivor",            "desc": "Survive 30 days.",                     "xp": 30, "check": { "type": "daysSurvived",     "value": 30 } },
+    { "id": "builder_10",     "name": "Master Builder",      "desc": "Complete 10 buildings.",               "xp": 40, "check": { "type": "buildingsComplete","value": 10 } },
+    { "id": "spymaster",      "name": "Spymaster",           "desc": "Scout a rival civilization.",          "xp": 20, "check": { "type": "scoutedRivals",    "value": 1 } }
+  ]
+}

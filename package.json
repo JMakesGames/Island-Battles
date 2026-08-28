@@ -1,0 +1,25 @@
+{
+  "name": "founders-of-the-giant-isle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Island Battles (JMakesGames) — a multiplayer civilization-building strategy game.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "server": "tsx server/index.ts",
+    "build:standalone": "npm run build && node scripts/build-standalone.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

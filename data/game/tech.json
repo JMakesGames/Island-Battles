@@ -1,0 +1,13 @@
+{
+  "$schema": "Technology eras + research (spec §10). Knowledge (a resource, accrued via base income + libraries) is spent to complete techs. type:'era' advances the civ's era, unlocking that era's buildings (see buildings.json era field). type:'bonus' grants a permanent civ-wide modifier read by the relevant system. requires gates a tech behind another. Not every path is forced: era techs are the spine, bonus techs are optional side investments (spec §10).",
+  "eras": ["survival", "settlement", "iron", "kingdom", "legacy"],
+  "techs": [
+    { "id": "era_settlement", "name": "Settlement Era", "era": "settlement", "type": "era",   "cost": 20,  "requires": null,             "desc": "Farms, granaries, markets, watchtowers." },
+    { "id": "agriculture",    "name": "Agriculture",    "era": "settlement", "type": "bonus", "cost": 15,  "requires": "era_settlement", "bonus": "farmYield",  "desc": "Farms yield +50% more food." },
+    { "id": "era_iron",       "name": "Ironworking",    "era": "iron",       "type": "era",   "cost": 45,  "requires": "era_settlement", "desc": "Libraries, barracks, walls." },
+    { "id": "engineering",    "name": "Engineering",    "era": "iron",       "type": "bonus", "cost": 30,  "requires": "era_iron",       "bonus": "buildSpeed", "desc": "Construction is 25% faster." },
+    { "id": "era_kingdom",    "name": "Kingdom Era",    "era": "kingdom",    "type": "era",   "cost": 80,  "requires": "era_iron",       "desc": "Temples that lift morale civilization-wide." },
+    { "id": "medicine",       "name": "Medicine",       "era": "kingdom",    "type": "bonus", "cost": 50,  "requires": "era_kingdom",    "bonus": "vitality",   "desc": "Citizens keep their health and morale more easily." },
+    { "id": "era_legacy",     "name": "Legacy Era",     "era": "legacy",     "type": "era",   "cost": 130, "requires": "era_kingdom",    "desc": "Unlocks the Grand Monument — the path to a Legacy Victory." }
+  ]
+}

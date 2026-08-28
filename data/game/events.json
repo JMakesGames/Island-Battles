@@ -1,0 +1,171 @@
+{
+  "$schema": "Narrative events (spec §14). Each event presents choices with data-driven effects so the Chronicle (spec §15) records them. effects keys: resource deltas (wood/stone/food/...), morale, health (all citizens), loyalty, leaderXp, battlePassXp, reputation{...}, spawnCitizens, revealRival. trigger: 'opener' fires once after founding; 'random' is eligible for the daily random roll; 'beforeWinter' fires as winter approaches; 'onSiteDiscovered' fires when the leader uncovers a ruin/cave; 'seasonal' fires (probabilistically) the day a season with a matching `season` field begins; 'chained' never fires on its own — only ever reached via another choice's `next` (spec: 'structured quest chains instead of one-off random events') — live/limited-time content (spec §27, §36 Phase 11) needs only new entries here, no code changes. A choice may set `next` (id of the follow-up event) and `nextDelayDays` (0/unset = immediately, N = queued for N days later). Telegraphed threats should always feel preventable (spec §8).",
+  "events": [
+    {
+      "id": "wounded_sailor",
+      "title": "A Sailor from the Sea",
+      "body": "A wounded sailor drags himself onto your beach, clutching a strange, water-stained map.",
+      "trigger": "opener",
+      "choices": [
+        { "label": "Help him",      "effects": { "food": -5, "morale": 8, "reputation": { "honorable": 1 } }, "log": "You nursed the sailor back to health.", "next": "castaway_returns", "nextDelayDays": 5 },
+        { "label": "Take the map",  "effects": { "reputation": { "unreliable": 1 }, "revealRival": true },     "log": "You took the map. It hints at a rival settlement inland." },
+        { "label": "Send him away", "effects": { "morale": -4 },                                              "log": "You turned the sailor away. Some citizens frowned." }
+      ]
+    },
+    {
+      "id": "castaway_returns",
+      "title": "The Castaway's Debt",
+      "body": "The sailor you nursed back to health returns, on his feet again. He offers to guide your scouts to a supply cache he spotted before you found him — or to stay and work for his keep.",
+      "trigger": "chained",
+      "choices": [
+        { "label": "Send him to the cache", "effects": { "wood": 30, "stone": 20 }, "log": "The sailor guided your scouts to the cache. He asked for a few more days before parting ways.", "next": "castaway_farewell", "nextDelayDays": 3 },
+        { "label": "Offer him a home instead", "effects": { "spawnCitizens": 1, "reputation": { "honorable": 1 } }, "log": "The sailor chose to stay, grateful for a place among your people." }
+      ]
+    },
+    {
+      "id": "castaway_farewell",
+      "title": "A Debt Repaid",
+      "body": "True to his word, the sailor's scouting paid off handsomely. He's ready to move on, and word of your kindness has started to travel with him.",
+      "trigger": "chained",
+      "choices": [
+        { "label": "Bid him farewell", "effects": { "gold": 15, "salt": 8, "reputation": { "honorable": 2 }, "battlePassXp": 40 }, "log": "The sailor left with your blessing, carrying tales of your isle to other shores." }
+      ]
+    },
+    {
+      "id": "cold_snap",
+      "title": "The Air Turns Cold",
+      "body": "Scouts report frost on the ridges. Winter is coming, and your granary looks thin.",
+      "trigger": "beforeWinter",
+      "choices": [
+        { "label": "Ration food now",  "effects": { "morale": -3, "food": 10 }, "log": "You rationed early. Bellies grumbled, but stores held." },
+        { "label": "Trust the harvest","effects": { "morale": 2 },              "log": "You gambled on the harvest and hoped for the best." }
+      ]
+    },
+    {
+      "id": "fever",
+      "title": "A Fever Spreads",
+      "body": "A sickness moves through the settlement. Citizens cough through the night.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Spend medicine",   "effects": { "medicine": -5, "health": 15 },              "log": "Medicine broke the fever before it spread." },
+        { "label": "Quarantine the sick","effects": { "morale": -5, "health": 5 },               "log": "You quarantined the sick. Harsh, but it slowed the spread." },
+        { "label": "Let it run",        "effects": { "health": -20, "morale": -6 },              "log": "The fever ran its course. Some did not recover." }
+      ]
+    },
+    {
+      "id": "storm",
+      "title": "A Great Storm",
+      "body": "Black clouds roll in off the ocean. Wind tears at the rooftops.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Shore up the buildings", "effects": { "wood": -10, "morale": 3 },     "log": "You braced the settlement. The storm passed with little damage." },
+        { "label": "Take shelter",           "effects": { "wood": -5, "food": -5 },        "log": "You sheltered and rode it out. The storm took some stores." }
+      ]
+    },
+    {
+      "id": "wildlife",
+      "title": "Beasts at the Treeline",
+      "body": "Wolves have been circling the settlement, drawn by the smell of food.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Drive them off",  "effects": { "leaderXp": 15, "morale": 4 },   "log": "Your leader drove the beasts back into the forest." },
+        { "label": "Leave out food",  "effects": { "food": -12 },                   "log": "You left out food to keep the beasts away — for now." }
+      ]
+    },
+    {
+      "id": "bandits",
+      "title": "Bandits Demand Tribute",
+      "body": "A ragged band appears at the edge of your land, demanding a share of your stores.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Pay them off",   "effects": { "gold": -10, "food": -10, "reputation": { "generous": 1 } }, "log": "You paid the bandits. They melted back into the hills." },
+        { "label": "Refuse them",    "effects": { "food": -15, "morale": -3, "reputation": { "fearsome": 1 } },"log": "You refused. They raided a granary before scattering." }
+      ]
+    },
+    {
+      "id": "drought",
+      "title": "The Wells Run Low",
+      "body": "Weeks without rain. The land cracks and the water level drops.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Ration water",   "effects": { "water": 15, "morale": -4 }, "log": "You rationed water. Throats were dry, but the settlement held." },
+        { "label": "Dig deeper",     "effects": { "wood": -8, "water": 25 },    "log": "You dug the wells deeper and struck fresh water." }
+      ]
+    },
+    {
+      "id": "traveling_merchant",
+      "title": "A Traveling Merchant",
+      "body": "A merchant caravan asks to rest in your settlement, offering rare goods for trade.",
+      "trigger": "random",
+      "choices": [
+        { "label": "Trade for gold",     "effects": { "food": -15, "gold": 20 },                 "log": "You traded surplus food for a purse of gold." },
+        { "label": "Trade for medicine", "effects": { "gold": -10, "medicine": 12 },             "log": "You bought medicine against the coming winter." },
+        { "label": "Wave them on",       "effects": { "morale": 1 },                             "log": "You sent the merchant on their way." }
+      ]
+    },
+    {
+      "id": "ruins",
+      "title": "Ancient Ruins",
+      "body": "Your leader uncovers moss-covered ruins — the work of a people long gone.",
+      "trigger": "onSiteDiscovered",
+      "choices": [
+        { "label": "Excavate carefully", "effects": { "knowledge": 15, "leaderXp": 20 },        "log": "You excavated the ruins and recovered ancient knowledge.", "next": "ruins_inscription", "nextDelayDays": 4 },
+        { "label": "Loot for relics",    "effects": { "relic": 1, "gold": 15, "reputation": { "unreliable": 1 } }, "log": "You stripped the ruins for relics and gold." }
+      ]
+    },
+    {
+      "id": "ruins_inscription",
+      "title": "A Hidden Inscription",
+      "body": "Days of careful study turn up a chamber your leader missed the first time — its walls covered in a forgotten script.",
+      "trigger": "chained",
+      "choices": [
+        { "label": "Have scholars translate it", "effects": { "knowledge": 25, "leaderXp": 15, "battlePassXp": 30 }, "log": "The inscription described forgotten techniques — your scholars are richer for it." },
+        { "label": "Seal the chamber back up",    "effects": { "morale": 3 },                                       "log": "You left the chamber undisturbed. Some things are better left buried." }
+      ]
+    },
+    {
+      "id": "spring_planting",
+      "title": "The Planting Festival",
+      "body": "The thaw has broken. Citizens gather seed for the first planting of the year and ask for your blessing.",
+      "trigger": "seasonal",
+      "season": "spring",
+      "choices": [
+        { "label": "Bless the planting",  "effects": { "fiber": -5, "morale": 6, "battlePassXp": 15 }, "log": "You blessed the spring planting. Spirits lifted across the settlement." },
+        { "label": "Keep to your work",   "effects": { "battlePassXp": 5 },                            "log": "You let the festival pass quietly and kept to your work." }
+      ]
+    },
+    {
+      "id": "summer_market",
+      "title": "The Summer Fair",
+      "body": "Long days bring traders from up the coast. A small fair springs up outside your walls.",
+      "trigger": "seasonal",
+      "season": "summer",
+      "choices": [
+        { "label": "Host the fair",   "effects": { "food": -8, "gold": 12, "reputation": { "generous": 1 }, "battlePassXp": 15 }, "log": "The summer fair brought coin and goodwill." },
+        { "label": "Turn them away",  "effects": { "morale": -2, "battlePassXp": 5 },                                            "log": "You turned the traders away. Some grumbled." }
+      ]
+    },
+    {
+      "id": "autumn_harvest",
+      "title": "Harvest Festival",
+      "body": "The granaries are full. Citizens want a night to celebrate before the cold sets in.",
+      "trigger": "seasonal",
+      "season": "autumn",
+      "choices": [
+        { "label": "Celebrate the harvest", "effects": { "food": -10, "morale": 10, "battlePassXp": 15 }, "log": "The harvest festival was one to remember." },
+        { "label": "Save the stores",       "effects": { "food": 10, "battlePassXp": 5 },                "log": "You banked the surplus instead of feasting on it." }
+      ]
+    },
+    {
+      "id": "winter_solstice",
+      "title": "The Longest Night",
+      "body": "Snow blankets the settlement. Citizens light lanterns against the dark and the cold.",
+      "trigger": "seasonal",
+      "season": "winter",
+      "choices": [
+        { "label": "Light the lanterns", "effects": { "wood": -6, "morale": 8, "battlePassXp": 15 }, "log": "Lanterns burned through the longest night. Spirits held." },
+        { "label": "Conserve fuel",      "effects": { "wood": 6, "battlePassXp": 5 },                "log": "You conserved fuel through the dark of winter." }
+      ]
+    }
+  ]
+}

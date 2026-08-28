@@ -1,0 +1,17 @@
+{
+  "$schema": "Source of truth for the premium currency. All values configurable; server-authoritative at runtime (spec §17-19, §35).",
+  "currency": {
+    "code": "LT",
+    "name": "Legacy Tokens",
+    "referenceUsdPer100": 0.99
+  },
+  "packages": [
+    { "id": "recruit",          "name": "Recruit",          "lt": 100,   "usd": 0.99,   "bonusLt": 0 },
+    { "id": "settler",          "name": "Settler",          "lt": 550,   "usd": 4.99,   "bonusLt": 50 },
+    { "id": "explorer",         "name": "Explorer",         "lt": 1200,  "usd": 9.99,   "bonusLt": 210 },
+    { "id": "kingdom",          "name": "Kingdom",          "lt": 2800,  "usd": 19.99,  "bonusLt": 780 },
+    { "id": "empire",           "name": "Empire",           "lt": 6500,  "usd": 39.99,  "bonusLt": 2540 },
+    { "id": "dynasty",          "name": "Dynasty",          "lt": 14000, "usd": 79.99,  "bonusLt": 6060 },
+    { "id": "founders_reserve", "name": "Founder's Reserve","lt": 30000, "usd": 149.99, "bonusLt": 15150 }
+  ]
+}

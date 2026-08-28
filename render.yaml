@@ -1,0 +1,31 @@
+# Render Blueprint — one Web Service serves both the game client (dist/,
+# built by Vite) and the multiplayer WebSocket endpoint (server/index.ts),
+# on Render's single free public URL. See server/index.ts's header for how
+# the static file serving + WebSocket server share one http.Server/port.
+#
+# Deploy: push this repo to GitHub, then in the Render dashboard choose
+# "New +" -> "Blueprint" and point it at the repo. Render reads this file
+# automatically. No manual service configuration needed.
+services:
+  - type: web
+    name: giant-isle
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run server
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+    # Player wallet/Battle Pass progress (server/data/players.json) lives on
+    # local disk — Render's free plan has an EPHEMERAL filesystem, so that
+    # progress resets on every deploy or restart. The live match itself
+    # (world, citizens, buildings) is fine either way, since it only ever
+    # lived in memory for the process's lifetime regardless. To keep wallet
+    # progress across deploys, upgrade this service to a paid plan and
+    # uncomment the disk below (Render doesn't support persistent disks on
+    # the free tier):
+    # disk:
+    #   name: giant-isle-data
+    #   mountPath: /opt/render/project/src/server/data
+    #   sizeGB: 1

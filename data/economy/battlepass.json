@@ -1,0 +1,18 @@
+{
+  "$schema": "Seasonal Battle Pass (spec §25). 100 levels, dual free/premium track. The free track MUST contain meaningful rewards. reward.type is cosmetic or 'lt' (soft grant of premium currency). Levels list is a template; live seasons override it.",
+  "premiumPriceLt": 950,
+  "levels": 100,
+  "season": {
+    "id": "s1_castaways",
+    "name": "Season 1 — The Castaways",
+    "durationDays": 70
+  },
+  "sampleTrack": [
+    { "level": 1,   "free": { "type": "banner",   "id": "banner_driftwood" },      "premium": { "type": "emote", "id": "emote_wave" } },
+    { "level": 10,  "free": { "type": "lt",       "amount": 50 },                  "premium": { "type": "mount", "id": "mount_brown_horse" } },
+    { "level": 25,  "free": { "type": "title",    "id": "title_survivor" },        "premium": { "type": "building_skin", "id": "skin_thatch_roofs" } },
+    { "level": 50,  "free": { "type": "lt",       "amount": 100 },                 "premium": { "type": "pet", "id": "pet_puppy" } },
+    { "level": 75,  "free": { "type": "chronicle","id": "chronicle_frame_bronze" },"premium": { "type": "victory_animation", "id": "victory_sunrise" } },
+    { "level": 100, "free": { "type": "banner",   "id": "banner_founder" },        "premium": { "type": "mount", "id": "mount_royal_horse" } }
+  ]
+}

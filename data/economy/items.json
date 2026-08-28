@@ -1,0 +1,21 @@
+{
+  "$schema": "The Legacy Market catalog — cosmetic-only source of truth (spec §20-23). rarity: common|rare|epic|legendary|mythic. cosmeticOnly MUST stay true for every item: cosmetics sell identity, never power (spec §22, §26). usd is the reference display value; LT price is authoritative. icon is an optional render hint (spec §36 Phase 8) — the renderer draws it for equipped items whose category maps to a renderable entity (leader citizens: CROWNS/MOUNTS; the town center building: BUILDINGS); categories without a renderable entity yet (PETS, MONUMENTS, ...) keep icon for future use but aren't drawn today.",
+  "categories": [
+    "LEADERS", "CROWNS", "BUILDINGS", "BANNERS", "MILITARY_COSMETICS",
+    "MOUNTS", "PETS", "MONUMENTS", "EMOTES", "TITLES", "CHRONICLES",
+    "WORLD_COSMETICS", "VISUAL_EFFECTS", "VICTORY_ANIMATIONS", "BUNDLES",
+    "SEASONAL", "BATTLE_PASS"
+  ],
+  "items": [
+    { "id": "mount_brown_horse",   "category": "MOUNTS",     "name": "Brown Horse",    "rarity": "common",    "lt": 500,  "usd": 4.95,  "cosmeticOnly": true, "icon": "🐴" },
+    { "id": "mount_white_horse",   "category": "MOUNTS",     "name": "White Horse",    "rarity": "rare",      "lt": 700,  "usd": 6.93,  "cosmeticOnly": true, "icon": "🐎" },
+    { "id": "mount_royal_horse",   "category": "MOUNTS",     "name": "Royal Horse",    "rarity": "epic",      "lt": 1200, "usd": 11.88, "cosmeticOnly": true, "icon": "🐎" },
+    { "id": "mount_phoenix",       "category": "MOUNTS",     "name": "Phoenix Mount",  "rarity": "legendary", "lt": 5000, "usd": 49.50, "cosmeticOnly": true, "icon": "🔥" },
+    { "id": "mount_ancient_dragon","category": "MOUNTS",     "name": "Ancient Dragon", "rarity": "mythic",    "lt": 7500, "usd": 74.25, "cosmeticOnly": true, "icon": "🐉" },
+    { "id": "pet_puppy",           "category": "PETS",       "name": "Puppy",          "rarity": "common",    "lt": 250,  "usd": 2.48,  "cosmeticOnly": true, "icon": "🐶" },
+    { "id": "pet_mini_dragon",     "category": "PETS",       "name": "Mini Dragon",    "rarity": "epic",      "lt": 3500, "usd": 34.65, "cosmeticOnly": true, "icon": "🐲" },
+    { "id": "crown_golden",        "category": "CROWNS",     "name": "Golden Crown",   "rarity": "epic",      "lt": 1000, "usd": 9.90,  "cosmeticOnly": true, "icon": "👑" },
+    { "id": "building_dragon_capital", "category": "BUILDINGS", "name": "Dragon Capital", "rarity": "legendary", "lt": 4000, "usd": 39.60, "cosmeticOnly": true, "icon": "🐉" },
+    { "id": "monument_world_tree", "category": "MONUMENTS",  "name": "World Tree",     "rarity": "legendary", "lt": 4000, "usd": 39.60, "cosmeticOnly": true, "icon": "🌳" }
+  ]
+}

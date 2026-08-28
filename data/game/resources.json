@@ -1,0 +1,17 @@
+{
+  "$schema": "Core + rare resources (spec §7). Gameplay-affecting; never sold for LT. 'basic' resources drive the Phase 1 loop; rare resources are reserved for later phases.",
+  "resources": [
+    { "id": "wood",     "name": "Wood",     "tier": "basic", "color": "#8a5a2b", "icon": "🪵", "carriable": true },
+    { "id": "stone",    "name": "Stone",    "tier": "basic", "color": "#9aa0a6", "icon": "🪨", "carriable": true },
+    { "id": "food",     "name": "Food",     "tier": "basic", "color": "#e0533b", "icon": "🍖", "carriable": true, "consumedPerCitizenPerDay": 1 },
+    { "id": "water",    "name": "Water",    "tier": "basic", "color": "#3ba3e0", "icon": "💧", "carriable": true, "consumedPerCitizenPerDay": 1 },
+    { "id": "fiber",    "name": "Fiber",    "tier": "basic", "color": "#c7b36a", "icon": "🌾", "carriable": true },
+    { "id": "iron",     "name": "Iron",     "tier": "mid",   "color": "#b7c0cc", "icon": "⛓️", "carriable": true },
+    { "id": "gold",     "name": "Gold",     "tier": "mid",   "color": "#e8c34a", "icon": "🪙", "carriable": true },
+    { "id": "medicine", "name": "Medicine", "tier": "mid",   "color": "#5ad18a", "icon": "🌿", "carriable": true },
+    { "id": "knowledge","name": "Knowledge","tier": "mid",   "color": "#a98cf0", "icon": "📜", "carriable": false },
+    { "id": "relic",    "name": "Ancient Relic", "tier": "rare", "color": "#f06ac2", "icon": "🏺", "carriable": true },
+    { "id": "salt",     "name": "Salt",     "tier": "rare", "color": "#eef0f2", "icon": "🧂", "carriable": true },
+    { "id": "crystal",  "name": "Crystal",  "tier": "rare", "color": "#6ff0e0", "icon": "🔮", "carriable": true }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "Blacksmith tools (spec: 'add a blacksmith character that the player can buy axes, pick axes, swords, iron, etc'). Bought once (permanent, civ-wide) with regular resources — not Legacy Tokens, so this is normal gameplay power, unlike the cosmetic-only Market (spec §22/§26). effect is a data-driven bonus read by CitizenSystem (gather) / CombatSystem (damage).",
+  "tools": [
+    { "id": "axe",      "name": "Axe",      "icon": "🪓", "cost": { "wood": 20, "iron": 10, "gold": 15 }, "effect": { "type": "gatherMult", "resources": ["wood"], "mult": 1.5 }, "desc": "Sharper blades cut wood 50% faster." },
+    { "id": "pickaxe",  "name": "Pickaxe",  "icon": "⛏",  "cost": { "wood": 15, "iron": 15, "gold": 15 }, "effect": { "type": "gatherMult", "resources": ["stone", "iron"], "mult": 1.5 }, "desc": "Hardened tips mine stone and iron 50% faster." },
+    { "id": "sword",    "name": "Sword",    "icon": "🗡",  "cost": { "wood": 10, "iron": 25, "gold": 25 }, "effect": { "type": "combatMult", "mult": 1.3 }, "desc": "Forged blades hit 30% harder in a fight." }
+  ]
+}

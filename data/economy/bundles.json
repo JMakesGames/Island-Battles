@@ -1,0 +1,10 @@
+{
+  "$schema": "Bundles offer better perceived value than buying contents separately (spec §24). contents reference item ids from items.json. Cosmetic-only.",
+  "bundles": [
+    { "id": "explorer_bundle",     "name": "Explorer Bundle",     "lt": 999,  "contents": ["mount_brown_horse", "pet_puppy"] },
+    { "id": "kingdom_bundle",      "name": "Kingdom Bundle",      "lt": 1999, "contents": ["mount_white_horse", "crown_golden"] },
+    { "id": "warlord_bundle",      "name": "Warlord Bundle",      "lt": 2999, "contents": ["mount_royal_horse", "pet_mini_dragon"] },
+    { "id": "emperor_bundle",      "name": "Emperor Bundle",      "lt": 4999, "contents": ["mount_phoenix", "crown_golden", "building_dragon_capital"] },
+    { "id": "founders_collection", "name": "Founder's Collection","lt": 7500, "contents": ["mount_ancient_dragon", "monument_world_tree", "crown_golden"] }
+  ]
+}

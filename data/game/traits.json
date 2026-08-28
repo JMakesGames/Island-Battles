@@ -1,0 +1,19 @@
+{
+  "$schema": "Citizen + leader traits (spec §5, §6). Citizens roll 0-1 traits at birth for flavour + a light modifier. Leaders earn one trait per level-up. Modifiers are a data bag read by systems: gatherMult (citizen gather speed), moraleBonus, loyaltyBonus, xpMult; leader: revealBonus (fog radius), knowledgePerDay, rallyBonus (interact morale), reputation hint.",
+  "citizenTraits": [
+    { "id": "hardworking", "name": "Hardworking", "desc": "Gathers noticeably faster.", "gatherMult": 1.25 },
+    { "id": "cheerful",    "name": "Cheerful",    "desc": "Keeps spirits high.",         "moraleBonus": 10 },
+    { "id": "loyal",       "name": "Loyal",       "desc": "Devoted to the founding.",    "loyaltyBonus": 25 },
+    { "id": "clever",      "name": "Clever",      "desc": "Learns their craft quickly.", "xpMult": 1.5 },
+    { "id": "stoic",       "name": "Stoic",       "desc": "Unshaken by hardship.",       "moraleBonus": 5 },
+    { "id": "frail",       "name": "Frail",       "desc": "Tires easily.",               "gatherMult": 0.85 },
+    { "id": "restless",    "name": "Restless",    "desc": "Never quite settles.",        "loyaltyBonus": -10 }
+  ],
+  "leaderTraits": [
+    { "id": "explorer", "name": "Explorer", "desc": "Your leader sees further into the fog.",     "revealBonus": 2 },
+    { "id": "scholar",  "name": "Scholar",  "desc": "+2 Knowledge income each day.",              "knowledgePerDay": 2 },
+    { "id": "orator",   "name": "Orator",   "desc": "Rallying citizens lifts their spirits more.","rallyBonus": 8 },
+    { "id": "diplomat", "name": "Diplomat", "desc": "Rivals are quicker to trust you.",           "reputation": "diplomatic" },
+    { "id": "warlord",  "name": "Warlord",  "desc": "Your name is feared across the isle.",       "reputation": "fearsome" }
+  ]
+}

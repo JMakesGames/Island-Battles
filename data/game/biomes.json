@@ -1,0 +1,25 @@
+{
+  "$schema": "Island biomes (spec §13) and the resource nodes that spawn on them. walkSpeed scales citizen movement (0 = impassable). buildable gates settlement placement. sprite is the SpriteAtlas key the renderer uses. nodeSpawns drive gathering.",
+  "biomes": [
+    { "id": "ocean",     "name": "Ocean",     "color": "#1b3a5c", "walkSpeed": 0,   "buildable": false, "sprite": "ocean" },
+    { "id": "beach",     "name": "Beach",     "color": "#d9c48a", "walkSpeed": 0.9, "buildable": true,  "sprite": "beach" },
+    { "id": "grassland", "name": "Grassland", "color": "#5c8a3a", "walkSpeed": 1.0, "buildable": true,  "sprite": "grass" },
+    { "id": "forest",    "name": "Forest",    "color": "#2f6b32", "walkSpeed": 0.8, "buildable": true,  "sprite": "forest" },
+    { "id": "jungle",    "name": "Jungle",    "color": "#1f5a2a", "walkSpeed": 0.7, "buildable": true,  "sprite": "jungle" },
+    { "id": "swamp",     "name": "Swamp",     "color": "#3c4a33", "walkSpeed": 0.5, "buildable": false, "sprite": "swamp" },
+    { "id": "mountain",  "name": "Mountain",  "color": "#6b6f76", "walkSpeed": 0.5, "buildable": false, "sprite": "mountain" },
+    { "id": "snow",      "name": "Snow",      "color": "#d8e2ea", "walkSpeed": 0.7, "buildable": true,  "sprite": "snow" },
+    { "id": "water",     "name": "Freshwater","color": "#3ba3e0", "walkSpeed": 0,   "buildable": false, "sprite": "water" }
+  ],
+  "nodes": [
+    { "id": "tree",    "resource": "wood",     "biome": "forest",    "amount": 60,  "color": "#1f4d22", "icon": "🌲", "sprite": "tree" },
+    { "id": "jungle_tree", "resource": "wood", "biome": "jungle",    "amount": 80,  "color": "#0f3d18", "icon": "🌴", "sprite": "palm" },
+    { "id": "berry",   "resource": "food",     "biome": "grassland", "amount": 40,  "color": "#b3315a", "icon": "🫐", "sprite": "berry" },
+    { "id": "reeds",   "resource": "fiber",    "biome": "grassland", "amount": 30,  "color": "#b8a24e", "icon": "🌾", "sprite": "reeds" },
+    { "id": "rocks",   "resource": "stone",    "biome": "beach",     "amount": 50,  "color": "#8a8f96", "icon": "🪨", "sprite": "rock" },
+    { "id": "iron_ore","resource": "iron",     "biome": "mountain",  "amount": 40,  "color": "#b7c0cc", "icon": "⛏️", "sprite": "ore" },
+    { "id": "herbs",   "resource": "medicine", "biome": "jungle",    "amount": 25,  "color": "#5ad18a", "icon": "🌿", "sprite": "herb" },
+    { "id": "crystal_node", "resource": "crystal", "biome": "snow",  "amount": 15,  "color": "#6ff0e0", "icon": "🔮", "sprite": "crystal" },
+    { "id": "pond",    "resource": "water",    "biome": "water",     "amount": 999, "color": "#3ba3e0", "icon": "💧", "sprite": "pond" }
+  ]
+}
