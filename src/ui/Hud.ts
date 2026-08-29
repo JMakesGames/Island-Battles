@@ -876,7 +876,12 @@ export class Hud {
   }
 
   private diplomacy(state: GameState, myCivId: number): void {
-    const rivals = state.aiCivs.filter((c) => c.ai?.discoveredByPlayer);
+    // AI rivals still need discovering first; other real players in a
+    // multiplayer match are never hidden from this panel — you already know
+    // they exist (bug report: "when I declare war with a country I should be
+    // able to attack them as well" — the panel only ever listed AI civs, so
+    // there was no way to declare war on another human player at all).
+    const rivals = state.civs.filter((c) => c.id !== myCivId && (c.isAI ? c.ai?.discoveredByPlayer : true));
     const myCiv = state.civs[myCivId];
 
     if (!this.diploOpen) return;

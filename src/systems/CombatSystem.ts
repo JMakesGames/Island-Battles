@@ -150,14 +150,18 @@ function killCitizen(state: GameState, civ: Civ, killerCiv: Civ, target: Citizen
 
   if (!target.isLeader) return;
 
-  // A human civ's leader falling shouldn't unfairly end a normal run (spec:
-  // "leader death — implement a clear recovery flow" by default; keep the
-  // old permadeath-and-defect behavior only for those who opt into hardcore
-  // mode). AI rivals always use the original conquest behavior below —
-  // sieging down a rival's leader is the whole reward for going to war with
-  // them, and softening that would gut the mechanic for the player as the
-  // aggressor.
-  if (!civ.isAI && !state.hardcoreLeaderDeath) {
+  // A human civ's leader falling shouldn't unfairly end a normal SOLO run
+  // (spec: "leader death — implement a clear recovery flow" by default; keep
+  // the old permadeath-and-defect behavior only for those who opt into
+  // hardcore mode). AI rivals always use the original conquest behavior
+  // below — sieging down a rival's leader is the whole reward for going to
+  // war with them, and softening that would gut the mechanic for the player
+  // as the aggressor. Real multiplayer PvP gets the same treatment as an AI
+  // rival regardless of the solo-only hardcore setting (bug report: "when
+  // the leader falls in a country, the country no longer exists and the
+  // colonists come to my country" — a real opponent's defeat should always
+  // be a real conquest, not a quiet respawn).
+  if (!civ.isAI && !state.hardcoreLeaderDeath && !state.multiplayer) {
     if (civ.citizens.length > 0) {
       promoteNewLeader(civ, bus);
     } else {

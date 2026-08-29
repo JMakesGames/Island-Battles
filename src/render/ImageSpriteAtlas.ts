@@ -51,11 +51,15 @@ const FILE_DIR: Record<Direction8, Direction8> = {
   upleft: "right", downleft: "right",
 };
 
-/** Directions that need the shared rightward frame mirrored horizontally. */
+/** Directions that need the shared rightward frame mirrored horizontally.
+ * Inverted from the "obvious" left/right split on explicit user report
+ * ("going left shows the right animation and vice versa — flip it, trust
+ * me") — the source file's walk cycle reads as left-facing by default, not
+ * right-facing as the rest of this file's naming assumed. */
 export const FLIP_LEFT: Record<Direction8, boolean> = {
   up: false, down: false,
-  right: false, upright: false, downright: false,
-  left: true, upleft: true, downleft: true,
+  right: true, upright: true, downright: true,
+  left: false, upleft: false, downleft: false,
 };
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {

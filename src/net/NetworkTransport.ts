@@ -37,10 +37,20 @@ export class NetworkTransport implements Transport {
     this.resolveReady = res;
     this.rejectReady = rej;
   });
+  // Free-tier hosts (Render et al.) sleep the server after idle and can take
+  // 30-50s to cold-start — the very first connection attempt routinely closes
+  // before a "welcome" ever arrives. Bug report: "multiplayer says I lost
+  // connection when booting up to the server" — a single close used to be
+  // treated as fatal (see git history); now it's retried with backoff, and
+  // only reported as a real failure once retries are exhausted.
+  private retriesLeft = 6;
+  private retryDelayMs = 3500;
+  private stopped = false;
 
   constructor(private url: string, private leaderName?: string, private password?: string) {}
 
   start(): void {
+    if (this.stopped) return;
     const playerId = getOrCreatePlayerId();
     const sep = this.url.includes("?") ? "&" : "?";
     let full = `${this.url}${sep}playerId=${encodeURIComponent(playerId)}`;
@@ -51,15 +61,22 @@ export class NetworkTransport implements Transport {
     this.ws.onerror = () => console.error("[NetworkTransport] connection error");
     this.ws.onclose = () => {
       console.warn("[NetworkTransport] disconnected from server");
-      // A close before ever getting seated (server down, dropped mid-handshake,
-      // etc.) must not leave ready() unsettled forever — that's what left the
-      // client stuck on a blank canvas with no feedback (bug report: "the
-      // square loader does not work").
-      if (!this.gotWelcome) this.rejectReady(new Error("Lost connection before joining."));
+      if (this.gotWelcome || this.stopped) return;
+      if (this.retriesLeft > 0) {
+        this.retriesLeft--;
+        setTimeout(() => this.start(), this.retryDelayMs);
+        return;
+      }
+      // A close before ever getting seated, even after retries, must not
+      // leave ready() unsettled forever — that's what left the client stuck
+      // on a blank canvas with no feedback (bug report: "the square loader
+      // does not work").
+      this.rejectReady(new Error("Couldn't reach the server after several tries. It may be starting up — try again in a minute."));
     };
   }
 
   stop(): void {
+    this.stopped = true;
     this.ws?.close();
     this.ws = null;
   }

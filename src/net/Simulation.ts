@@ -84,6 +84,7 @@ export class Simulation {
     }
     this.state = new GameState(seed);
     this.state.hardcoreLeaderDeath = opts.hardcoreLeaderDeath ?? false;
+    this.state.multiplayer = !(opts.soloHuman ?? true);
     this.setupCivs(opts.soloHuman ?? true, opts);
   }
 

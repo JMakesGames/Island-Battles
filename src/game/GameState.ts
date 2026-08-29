@@ -61,6 +61,14 @@ export class GameState {
    * citizen defection to the killer on combat death, game over either way). */
   hardcoreLeaderDeath = false;
 
+  /** True for a real multiplayer match (server/index.ts's Simulation, not
+   * solo/LocalTransport) — see CombatSystem.killCitizen: another human
+   * player's war kill should always be a real conquest (their nation falls,
+   * their people join yours), never the softer solo "a survivor steps up"
+   * recovery, which exists only to protect a solo run from an unlucky
+   * wildlife/AI death. */
+  multiplayer = false;
+
   constructor(seed: number) {
     this.world = new World(seed);
     this.rng = new RNG(seed ^ 0x9e3779b9);
