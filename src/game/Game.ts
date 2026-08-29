@@ -136,7 +136,13 @@ export class Game {
     this.isMultiplayer = !!serverUrl;
     setVolume(loadVolume());
     this.transport = serverUrl
-      ? new NetworkTransport(serverUrl, options.leaderName, options.matchPassword)
+      ? new NetworkTransport(serverUrl, options.leaderName, options.matchPassword, (attempt, total) => {
+          // A free-tier host waking from sleep can take 30-60s — without this,
+          // the initial "Connecting…" toast fades and the screen just sits
+          // there with no sign anything is still happening (bug report:
+          // "still won't load into the multiplayer").
+          this.hud.toast(`Still reaching the server — waking it up (${attempt}/${total})…`);
+        })
       : new LocalTransport(seed, {
           leaderName: options.leaderName,
           civColor: options.civColor,

@@ -43,11 +43,12 @@ export class NetworkTransport implements Transport {
   // connection when booting up to the server" — a single close used to be
   // treated as fatal (see git history); now it's retried with backoff, and
   // only reported as a real failure once retries are exhausted.
-  private retriesLeft = 6;
-  private retryDelayMs = 3500;
+  private retriesLeft = 15;
+  private retryDelayMs = 4000;
   private stopped = false;
+  private totalRetries = this.retriesLeft;
 
-  constructor(private url: string, private leaderName?: string, private password?: string) {}
+  constructor(private url: string, private leaderName?: string, private password?: string, private onRetry?: (attempt: number, total: number) => void) {}
 
   start(): void {
     if (this.stopped) return;
@@ -64,6 +65,7 @@ export class NetworkTransport implements Transport {
       if (this.gotWelcome || this.stopped) return;
       if (this.retriesLeft > 0) {
         this.retriesLeft--;
+        this.onRetry?.(this.totalRetries - this.retriesLeft, this.totalRetries);
         setTimeout(() => this.start(), this.retryDelayMs);
         return;
       }
