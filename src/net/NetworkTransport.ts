@@ -32,19 +32,31 @@ export class NetworkTransport implements Transport {
   private gotWelcome = false;
   private gotSnapshot = false;
   private resolveReady!: () => void;
-  private readyPromise = new Promise<void>((res) => (this.resolveReady = res));
+  private rejectReady!: (err: Error) => void;
+  private readyPromise = new Promise<void>((res, rej) => {
+    this.resolveReady = res;
+    this.rejectReady = rej;
+  });
 
-  constructor(private url: string, private leaderName?: string) {}
+  constructor(private url: string, private leaderName?: string, private password?: string) {}
 
   start(): void {
     const playerId = getOrCreatePlayerId();
     const sep = this.url.includes("?") ? "&" : "?";
     let full = `${this.url}${sep}playerId=${encodeURIComponent(playerId)}`;
     if (this.leaderName) full += `&leaderName=${encodeURIComponent(this.leaderName)}`;
+    if (this.password) full += `&password=${encodeURIComponent(this.password)}`;
     this.ws = new WebSocket(full);
     this.ws.onmessage = (ev) => this.onMessage(ev.data as string);
     this.ws.onerror = () => console.error("[NetworkTransport] connection error");
-    this.ws.onclose = () => console.warn("[NetworkTransport] disconnected from server");
+    this.ws.onclose = () => {
+      console.warn("[NetworkTransport] disconnected from server");
+      // A close before ever getting seated (server down, dropped mid-handshake,
+      // etc.) must not leave ready() unsettled forever — that's what left the
+      // client stuck on a blank canvas with no feedback (bug report: "the
+      // square loader does not work").
+      if (!this.gotWelcome) this.rejectReady(new Error("Lost connection before joining."));
+    };
   }
 
   stop(): void {
@@ -74,7 +86,10 @@ export class NetworkTransport implements Transport {
         for (const h of this.handlers) h(msg.event as ServerEvent);
         break;
       case "full":
-        console.warn("[NetworkTransport] server has no open civ slots.");
+        this.rejectReady(new Error("That match is full — try again later."));
+        break;
+      case "badPassword":
+        this.rejectReady(new Error("Wrong match password."));
         break;
     }
     if (this.gotWelcome && this.gotSnapshot) this.resolveReady();

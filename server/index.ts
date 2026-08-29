@@ -56,6 +56,11 @@ const AUTOSAVE_MS = 10_000;
 const seed = Date.now() & 0xffff;
 const sim = new Simulation(seed, { soloHuman: false });
 
+// Optional shared password gating this match (spec: "hide the raw server
+// address, replace it with name and password") — unset/blank means open to
+// anyone with the link, matching the old no-auth behavior.
+const ROOM_PASSWORD = (process.env.ROOM_PASSWORD ?? "").trim();
+
 const civOfSocket = new Map<WebSocket, number>();
 const playerIdOfCiv = new Map<number, string>();
 
@@ -111,13 +116,18 @@ const wss = new WebSocketServer({ server: httpServer });
 
 wss.on("connection", (ws, req) => {
   void (async () => {
+    const params = new URL(req.url ?? "", "http://localhost").searchParams;
+    if (ROOM_PASSWORD && params.get("password") !== ROOM_PASSWORD) {
+      ws.send(JSON.stringify({ type: "badPassword" }));
+      ws.close();
+      return;
+    }
     const civId = claimNextCiv();
     if (civId === null) {
       ws.send(JSON.stringify({ type: "full" }));
       ws.close();
       return;
     }
-    const params = new URL(req.url ?? "", "http://localhost").searchParams;
     const leaderName = params.get("leaderName") ?? undefined;
     const civ = sim.claimCiv(civId, leaderName);
     if (!civ) {

@@ -65,6 +65,8 @@ export interface GameOptions {
   /** If given (e.g. "ws://localhost:8790"), connects to a real multiplayer
    * server via NetworkTransport instead of running solo locally. */
   serverUrl?: string;
+  /** Multiplayer only — gates joining the match (server/index.ts's ROOM_PASSWORD). */
+  matchPassword?: string;
   /** Leader customization from the main menu (spec §5). */
   leaderName?: string;
   /** Solo mode only — see Simulation's civColor note on multiplayer collisions. */
@@ -134,7 +136,7 @@ export class Game {
     this.isMultiplayer = !!serverUrl;
     setVolume(loadVolume());
     this.transport = serverUrl
-      ? new NetworkTransport(serverUrl, options.leaderName)
+      ? new NetworkTransport(serverUrl, options.leaderName, options.matchPassword)
       : new LocalTransport(seed, {
           leaderName: options.leaderName,
           civColor: options.civColor,
@@ -190,7 +192,18 @@ export class Game {
   private async init(serverUrl?: string): Promise<void> {
     if (serverUrl) this.hud.toast("Connecting to server…");
     this.transport.start();
-    await this.transport.ready();
+    try {
+      await this.transport.ready();
+    } catch (err) {
+      // A rejected ready() (server full, wrong password, dropped before
+      // seating) used to leave the client stuck on a blank canvas forever —
+      // no render loop ever started, nothing to explain why (bug report:
+      // "the square loader does not work"). Bounce back to the menu instead.
+      const message = err instanceof Error ? err.message : "Couldn't join that match.";
+      window.alert(message);
+      this.onGameOver?.();
+      return;
+    }
     this.myCivId = this.transport.myCivId();
 
     const start = this.transport.playerStart();

@@ -129,17 +129,33 @@ export class MainMenu {
     modeRow.append(soloBtn, mpBtn);
     leftCol.appendChild(modeRow);
 
-    // --- Server URL (multiplayer only) ---
+    // --- Match password (multiplayer only) — replaces the old raw
+    // ws://host:port textbox (bug report: "the [server address] should be
+    // hidden from the player, replaced with name and password for a
+    // match"). The address itself is never shown; it's still resolved
+    // automatically via guessServerUrl() (same-origin once deployed — see
+    // that function's header) and only overridden by a `?server=` share
+    // link. A password is optional and only checked if the host set
+    // ROOM_PASSWORD on their server; leaving it blank still joins an
+    // unprotected server exactly like before. ---
+    const serverUrl = this.defaultServerUrl ?? guessServerUrl();
     const serverWrap = document.createElement("div");
     serverWrap.style.cssText = "display:none;margin-bottom:14px";
     const serverLabel = document.createElement("div");
     serverLabel.style.cssText = "font-size:12px;color:var(--ink-soft);margin-bottom:4px";
-    serverLabel.textContent = "Server address (ask your host, or run `npm run server`):";
+    serverLabel.textContent = "Match name (for your own reference — ask your host what they called it):";
     const serverInput = document.createElement("input");
     serverInput.type = "text";
-    serverInput.value = this.defaultServerUrl ?? guessServerUrl();
+    serverInput.placeholder = "e.g. Friday Night Isle";
     serverInput.style.cssText = this.inputStyle();
-    serverWrap.append(serverLabel, serverInput);
+    const passLabel = document.createElement("div");
+    passLabel.style.cssText = "font-size:12px;color:var(--ink-soft);margin:10px 0 4px";
+    passLabel.textContent = "Password (leave blank unless your host set one):";
+    const passInput = document.createElement("input");
+    passInput.type = "password";
+    passInput.placeholder = "••••••••";
+    passInput.style.cssText = this.inputStyle();
+    serverWrap.append(serverLabel, serverInput, passLabel, passInput);
     leftCol.appendChild(serverWrap);
 
     // --- Leader name ---
@@ -262,7 +278,7 @@ export class MainMenu {
       const leaderName = nameInput.value.trim() || undefined;
       this.onPlay(
         this.mode === "multiplayer"
-          ? { serverUrl: serverInput.value.trim(), leaderName }
+          ? { serverUrl, matchPassword: passInput.value || undefined, leaderName }
           : { leaderName, civColor: this.color, hardcoreLeaderDeath: this.hardcore, saveSlot: free >= 0 ? free : undefined },
       );
     };

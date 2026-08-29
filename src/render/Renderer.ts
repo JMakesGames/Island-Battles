@@ -329,8 +329,15 @@ export class Renderer {
 
     for (const civ of state.civs) {
       const isPlayer = civ.id === myCivId;
+      // Real players sharing this match are never hidden behind fog from
+      // each other (bug report: "when I moved on one screen, it would not
+      // show for the other" — the two civs spawn far enough apart that
+      // neither had explored the other's ground yet). Fog still hides
+      // AI-controlled rival civs, preserving "the mystery of who lives
+      // where" for them specifically.
+      const alwaysVisible = isPlayer || !civ.isAI;
       for (const b of civ.buildings) {
-        if (!isPlayer && !explored(b.tile.x, b.tile.y)) continue;
+        if (!alwaysVisible && !explored(b.tile.x, b.tile.y)) continue;
         entities.push({
           depth: b.tile.y,
           draw: () => {
@@ -382,7 +389,7 @@ export class Renderer {
       }
 
       for (const c of civ.citizens) {
-        if (!isPlayer && !explored(c.pos.x, c.pos.y)) continue;
+        if (!alwaysVisible && !explored(c.pos.x, c.pos.y)) continue;
         entities.push({
           depth: c.pos.y,
           draw: () => {
@@ -478,6 +485,28 @@ export class Renderer {
             }
 
             const cy = cyBase - drawH / 2; // sprite's rough vertical center, for rings/icons
+
+            // Nametag over other real players' leaders only (bug report: "the
+            // name should appear above the player, but only to other
+            // players") — your own leader's name already sits in the HUD's
+            // leader bar, and AI rivals stay anonymous until diplomacy/scouting
+            // reveals them, so this is deliberately scoped to isLeader + human
+            // + not-me.
+            if (c.isLeader && !isPlayer && !civ.isAI) {
+              // civ.leaderName is the raw name; c.name has a "(You)" suffix
+              // baked in for the owning client (Civ.spawnCitizen) which must
+              // never leak into how OTHER clients see this same leader.
+              const label = civ.leaderName || civ.name;
+              ctx.font = "600 12px Georgia, serif";
+              ctx.textAlign = "center";
+              const tagY = cyBase - drawH - ts * 0.12;
+              const w = ctx.measureText(label).width;
+              ctx.fillStyle = "rgba(20,14,6,0.6)";
+              ctx.fillRect(cx - w / 2 - 5, tagY - 12, w + 10, 16);
+              ctx.fillStyle = civ.color;
+              ctx.fillText(label, cx, tagY);
+              ctx.textAlign = "left";
+            }
 
             // Animal companion (spec: "the animals should follow and be visible
             // to the player") — the equipped companion pads along just behind
@@ -692,8 +721,9 @@ export class Renderer {
         }
         if (!target) continue;
         // Only show combat the player can actually see (fog rules), else arrows
-        // pop out of unexplored territory.
-        if (!state.world.tileAt(Math.round(c.pos.x), Math.round(c.pos.y))?.explored) continue;
+        // pop out of unexplored territory — real players stay visible to each
+        // other regardless, same as their citizen sprites above.
+        if (civ.isAI && !state.world.tileAt(Math.round(c.pos.x), Math.round(c.pos.y))?.explored) continue;
         const ranged = c.job === "archer";
         this.projectiles.push({
           x: c.pos.x, y: c.pos.y, tx: target.x, ty: target.y,
