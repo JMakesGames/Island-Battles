@@ -47,8 +47,25 @@ export class NetworkTransport implements Transport {
   private retryDelayMs = 4000;
   private stopped = false;
   private totalRetries = this.retriesLeft;
+  // True once a "welcome" has actually been received — distinguishes "never
+  // connected yet" (the boot-time retry loop, reported via rejecting ready())
+  // from "was playing, then the socket dropped" (bug report: character
+  // "keeps moving on its own" with the keyboard untouched — a mid-game close
+  // used to be silently ignored entirely, leaving predictLeaderStep's local
+  // prediction running forever with nothing to ever correct it again since
+  // no further snapshot could arrive). Both cases now retry the same way;
+  // onConnectionChange tells Game.ts to freeze prediction and show feedback
+  // specifically for the "was playing" case.
+  private connected = false;
+  private hasEverConnected = false;
 
-  constructor(private url: string, private leaderName?: string, private password?: string, private onRetry?: (attempt: number, total: number) => void) {}
+  constructor(
+    private url: string,
+    private leaderName?: string,
+    private password?: string,
+    private onRetry?: (attempt: number, total: number) => void,
+    private onConnectionChange?: (connected: boolean) => void,
+  ) {}
 
   start(): void {
     if (this.stopped) return;
@@ -62,18 +79,32 @@ export class NetworkTransport implements Transport {
     this.ws.onerror = () => console.error("[NetworkTransport] connection error");
     this.ws.onclose = () => {
       console.warn("[NetworkTransport] disconnected from server");
-      if (this.gotWelcome || this.stopped) return;
+      if (this.stopped) return;
+      const wasConnected = this.connected;
+      this.connected = false;
+      // Force a fresh handshake on reconnect — the old civ slot was already
+      // handed back to AI control server-side the moment this socket closed
+      // (see server/index.ts's ws.on("close")), so rejoining always means a
+      // brand-new "welcome" (possibly a different civId).
+      this.gotWelcome = false;
+      this.gotSnapshot = false;
+      if (wasConnected) this.onConnectionChange?.(false);
       if (this.retriesLeft > 0) {
         this.retriesLeft--;
         this.onRetry?.(this.totalRetries - this.retriesLeft, this.totalRetries);
         setTimeout(() => this.start(), this.retryDelayMs);
         return;
       }
-      // A close before ever getting seated, even after retries, must not
-      // leave ready() unsettled forever — that's what left the client stuck
-      // on a blank canvas with no feedback (bug report: "the square loader
-      // does not work").
-      this.rejectReady(new Error("Couldn't reach the server after several tries. It may be starting up — try again in a minute."));
+      if (!wasConnected) {
+        // A close before ever getting seated, even after retries, must not
+        // leave ready() unsettled forever — that's what left the client
+        // stuck on a blank canvas with no feedback (bug report: "the square
+        // loader does not work").
+        this.rejectReady(new Error("Couldn't reach the server after several tries. It may be starting up — try again in a minute."));
+      }
+      // else: was already playing and retries are now exhausted too —
+      // onConnectionChange(false) already told the UI; there's nothing more
+      // to automatically do without a full page reload.
     };
   }
 
@@ -91,12 +122,18 @@ export class NetworkTransport implements Transport {
       return;
     }
     switch (msg.type) {
-      case "welcome":
+      case "welcome": {
+        const reconnecting = this.hasEverConnected;
         this.civId = msg.civId as number;
         this.startPos = msg.playerStart as Vec2;
         this.pastHistory = (msg.history as ChronicleRecord[]) ?? [];
         this.gotWelcome = true;
+        this.connected = true;
+        this.hasEverConnected = true;
+        this.retriesLeft = this.totalRetries; // a fresh budget for the next drop, if any
+        if (reconnecting) this.onConnectionChange?.(true);
         break;
+      }
       case "snapshot":
         this.latest = rehydrateSnapshot(msg.state);
         this.gotSnapshot = true;
@@ -115,7 +152,12 @@ export class NetworkTransport implements Transport {
   }
 
   send(cmd: Command): void {
-    this.ws?.send(JSON.stringify({ type: "command", command: cmd }));
+    // Between a mid-game drop and the next reconnect attempt, `ws` still
+    // points at the closed socket (only stop() nulls it) — sending on a
+    // CLOSING/CLOSED WebSocket throws, which would otherwise blow up
+    // whatever input handler called this (e.g. a keyup while offline).
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: "command", command: cmd }));
   }
 
   onServerEvent(cb: (e: ServerEvent) => void): () => void {

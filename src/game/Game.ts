@@ -142,6 +142,27 @@ export class Game {
           // there with no sign anything is still happening (bug report:
           // "still won't load into the multiplayer").
           this.hud.toast(`Still reaching the server — waking it up (${attempt}/${total})…`);
+        }, (connected) => {
+          // A mid-game drop used to be silently ignored entirely — nothing
+          // ever stopped predictLeaderStep's local-only prediction, so the
+          // leader kept sliding in whatever direction it was last walking
+          // forever with no server correction ever arriving again (bug
+          // report: character "keeps moving on its own", rubber-banding,
+          // animation glitches — all symptoms of a runaway local guess with
+          // no ground truth). Freezing prediction the instant we're
+          // disconnected stops that; a fresh welcome on reconnect may also
+          // reseat this client to a different civId, so pick that back up
+          // too rather than keep sending commands for a civ that's no
+          // longer this connection's.
+          if (!connected) {
+            this.predictedMoveDir = null;
+            this.predictedTarget = null;
+            this.hud.toast("Connection lost — reconnecting…");
+          } else {
+            this.myCivId = this.transport.myCivId();
+            this.lastSentDir = null;
+            this.hud.toast("Reconnected.");
+          }
         })
       : new LocalTransport(seed, {
           leaderName: options.leaderName,
